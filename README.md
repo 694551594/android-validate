@@ -53,3 +53,17 @@ ValidateManager validateManager = new ValidateManager();
             }
         });
 ```
+
+### 4、注册验证器
+注意，默认的验证类型为-100 ~ -110，如果不是重新定义这几类的验证器，请不要注册验证类型为-100 ~ -110的验证器，否则会覆盖掉默认的验证器
+```java
+        ValidateManager.register(0, new ValidateManager.IValidator() {
+                  @Override
+                  public boolean validate(int validateType, EditText editText, String text, Map<String, Object> extras) {
+                      return false;
+                  }
+              });
+```
+```java
+         validateManager.addValidateItem(editText12, 0, "自定义的验证类型");
+ ```

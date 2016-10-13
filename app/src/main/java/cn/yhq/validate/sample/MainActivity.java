@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import cn.yhq.validate.ValidateManager;
 
@@ -22,7 +23,14 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(editText.getContext(), validateMessage, Toast.LENGTH_LONG).show();
             }
         });
+        ValidateManager.register(0, new ValidateManager.IValidator() {
+            @Override
+            public boolean validate(int validateType, EditText editText, String text, Map<String, Object> extras) {
+                return false;
+            }
+        });
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         EditText editText9 = (EditText) this.findViewById(R.id.editText9);
         EditText editText10 = (EditText) this.findViewById(R.id.editText10);
         EditText editText11 = (EditText) this.findViewById(R.id.editText11);
+        EditText editText12 = (EditText) this.findViewById(R.id.editText12);
         Button validateButton = (Button) this.findViewById(R.id.button);
 
         validateManager.addValidateRequiredItem(editText1, "该项为必填项，不可为空");
@@ -54,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         List<String> values = new ArrayList<>();
         values.add("1");
         validateManager.addValidateUniqueItem(editText11, "输入的值已经存在，请重新输入", values);
+        validateManager.addValidateItem(editText12, 0, "自定义的验证类型");
 
         validateButton.setOnClickListener(new View.OnClickListener() {
             @Override

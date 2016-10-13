@@ -18,12 +18,11 @@ import java.util.regex.Pattern;
 public class ValidateManager {
     private Map<EditText, ValidateItems> validates;
     private static IValidateHandler mValidateHandler = new DefaultValidateHandler();
-    private final static String TAG = "validate";
 
-    private static Map<ValidateType, IValidator> validators = new HashMap<ValidateType, IValidator>();
+    private static Map<Integer, IValidator> validators = new HashMap<>();
 
     public ValidateManager() {
-        validates = new LinkedHashMap<EditText, ValidateItems>();
+        validates = new LinkedHashMap<>();
     }
 
     public interface IValidateHandler {
@@ -31,7 +30,7 @@ public class ValidateManager {
     }
 
     public interface IValidator {
-        boolean validate(ValidateType validateType, EditText editText, String text,
+        boolean validate(int validateType, EditText editText, String text,
                          Map<String, Object> extras);
     }
 
@@ -49,7 +48,7 @@ public class ValidateManager {
     }
 
     public static class ValidateItem {
-        public ValidateType type;
+        public int type;
         public String message;
         public Map<String, Object> extras = new HashMap<String, Object>();
 
@@ -60,7 +59,7 @@ public class ValidateManager {
         public final static String EXTRA_EDITTEXT = "edittext";
         public final static String EXTRA_ARRAY = "array";
 
-        public static ValidateItem createValueItem(ValidateType type, String message, int value) {
+        static ValidateItem createValueItem(int type, String message, int value) {
             ValidateItem item = new ValidateItem();
             item.type = type;
             item.message = message;
@@ -68,7 +67,7 @@ public class ValidateManager {
             return item;
         }
 
-        public static ValidateItem createLengthItem(ValidateType type, String message, int length) {
+        static ValidateItem createLengthItem(int type, String message, int length) {
             ValidateItem item = new ValidateItem();
             item.type = type;
             item.message = message;
@@ -76,8 +75,8 @@ public class ValidateManager {
             return item;
         }
 
-        public static ValidateItem createEqualsItem(ValidateType type, String message,
-                                                    EditText editText) {
+        static ValidateItem createEqualsItem(int type, String message,
+                                             EditText editText) {
             ValidateItem item = new ValidateItem();
             item.type = type;
             item.message = message;
@@ -85,8 +84,8 @@ public class ValidateManager {
             return item;
         }
 
-        public static ValidateItem createUniqueItem(ValidateType type, String message,
-                                                    List<String> array) {
+        static ValidateItem createUniqueItem(int type, String message,
+                                             List<String> array) {
             ValidateItem item = new ValidateItem();
             item.type = type;
             item.message = message;
@@ -94,7 +93,7 @@ public class ValidateManager {
             return item;
         }
 
-        public static ValidateItem createEqualsItem(ValidateType type, String message, String text) {
+        static ValidateItem createEqualsItem(int type, String message, String text) {
             ValidateItem item = new ValidateItem();
             item.type = type;
             item.message = message;
@@ -102,7 +101,7 @@ public class ValidateManager {
             return item;
         }
 
-        public static ValidateItem createRegexItem(ValidateType type, String message, String regex) {
+        static ValidateItem createRegexItem(int type, String message, String regex) {
             ValidateItem item = new ValidateItem();
             item.type = type;
             item.message = message;
@@ -110,10 +109,18 @@ public class ValidateManager {
             return item;
         }
 
-        public static ValidateItem createItem(ValidateType type, String message) {
+        static ValidateItem createItem(int type, String message) {
             ValidateItem item = new ValidateItem();
             item.type = type;
             item.message = message;
+            return item;
+        }
+
+        static ValidateItem createItem(int type, String message, Map<String, Object> extras) {
+            ValidateItem item = new ValidateItem();
+            item.type = type;
+            item.message = message;
+            item.extras = extras;
             return item;
         }
 
@@ -225,9 +232,15 @@ public class ValidateManager {
      * @param type
      * @param validateMessage
      */
-    public ValidateManager addValidateItem(EditText editText, ValidateType type,
+    public ValidateManager addValidateItem(EditText editText, int type,
                                            String validateMessage) {
         addValidateItem(editText, ValidateItem.createItem(type, validateMessage));
+        return this;
+    }
+
+    public ValidateManager addValidateItem(EditText editText, int type,
+                                           String validateMessage, Map<String, Object> extras) {
+        addValidateItem(editText, ValidateItem.createItem(type, validateMessage, extras));
         return this;
     }
 
@@ -242,18 +255,18 @@ public class ValidateManager {
      *
      * @author Yanghuiqiang 2014-4-17
      */
-    public enum ValidateType {
-        REQUIRED, // 是否为空
-        EMAIL, // 邮箱
-        PHONE, // 手机号
-        REGEX, // 正则表达式
-        MAX_LENGTH, // 最大长度
-        MIN_LENGTH, // 最小长度
-        MAX_VALUE, // 最大值
-        MIN_VALUE, // 最小值
-        EQUALS_STRING, // 字符串相等
-        EQUALS_EDITTEXT, // edittext内容相等
-        UNIQUE; // 唯一性
+    public interface ValidateType {
+        int REQUIRED = -100; // 是否为空
+        int EMAIL = -101; // 邮箱
+        int PHONE = -102; // 手机号
+        int REGEX = -103; // 正则表达式
+        int MAX_LENGTH = -104; // 最大长度
+        int MIN_LENGTH = -105; // 最小长度
+        int MAX_VALUE = -106; // 最大值
+        int MIN_VALUE = -107; // 最小值
+        int EQUALS_STRING = -108; // 字符串相等
+        int EQUALS_EDITTEXT = -109; // edittext内容相等
+        int UNIQUE = -110; // 唯一性
     }
 
     public void clear() {
@@ -280,10 +293,14 @@ public class ValidateManager {
         validators.put(ValidateType.UNIQUE, new UniqueValidator());
     }
 
+    public static void register(int validateType, IValidator validator) {
+        validators.put(validateType, validator);
+    }
+
     static class UniqueValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!unique(text, (List<String>) extras.get(ValidateItem.EXTRA_ARRAY))) {
                 return false;
@@ -296,7 +313,7 @@ public class ValidateManager {
     static class RequiredValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (isBlank(text)) {
                 return false;
@@ -309,7 +326,7 @@ public class ValidateManager {
     static class EmailValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!isEmail(text)) {
                 return false;
@@ -322,7 +339,7 @@ public class ValidateManager {
     static class PhoneValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!isPhone(text)) {
                 return false;
@@ -335,7 +352,7 @@ public class ValidateManager {
     static class MinLengthValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!minLength(text, (int) extras.get(ValidateItem.EXTRA_LENGTH))) {
                 return false;
@@ -348,7 +365,7 @@ public class ValidateManager {
     static class MaxLengthValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!maxLength(text, (int) extras.get(ValidateItem.EXTRA_LENGTH))) {
                 return false;
@@ -361,7 +378,7 @@ public class ValidateManager {
     static class MinValueValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!minValue(text, (int) extras.get(ValidateItem.EXTRA_VALUE))) {
                 return false;
@@ -374,7 +391,7 @@ public class ValidateManager {
     static class MaxValueValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!maxValue(text, (int) extras.get(ValidateItem.EXTRA_VALUE))) {
                 return false;
@@ -387,7 +404,7 @@ public class ValidateManager {
     static class EqualsStringValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!equalsString(text, (String) extras.get(ValidateItem.EXTRA_TEXT))) {
                 return false;
@@ -400,7 +417,7 @@ public class ValidateManager {
     static class EqualsEditTextValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!equalsString(text,
                     ((EditText) extras.get(ValidateItem.EXTRA_EDITTEXT)).getText().toString())) {
@@ -414,7 +431,7 @@ public class ValidateManager {
     static class RegexValidator implements IValidator {
 
         @Override
-        public boolean validate(ValidateType validateType, EditText editText, String text,
+        public boolean validate(int validateType, EditText editText, String text,
                                 Map<String, Object> extras) {
             if (!regex((String) extras.get(ValidateItem.EXTRA_REGEX), text)) {
                 return false;
@@ -430,7 +447,7 @@ public class ValidateManager {
         List<ValidateItem> list = items.validateItems;
         for (int i = 0; i < list.size(); i++) {
             ValidateItem item = list.get(i);
-            ValidateType type = item.type;
+            int type = item.type;
             String validateMessage = item.message;
             String text = editText.getText().toString();
 

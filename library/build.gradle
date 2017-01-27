@@ -35,7 +35,7 @@ publish {
     userOrg = '694551594'
     groupId = 'cn.yhq'
     artifactId = 'android-validate'
-    publishVersion = '1.0'
+    publishVersion = '2.0'
     desc = 'android EditText验证框架'
     website = 'https://github.com/694551594/android-validate'
 }

@@ -13,7 +13,7 @@ android轻量级EditText验证框架，支持以下11种验证类型：
 - UNIQUE; 唯一性
 
 # gradle配置方式
-`compile 'cn.yhq:android-validate:1.2.0'`
+`compile 'cn.yhq:android-validate:2.0.0'`
 
 # 使用方式
 ### 1、添加验证器：

@@ -2,7 +2,11 @@ package cn.yhq.validate;
 
 import android.widget.EditText;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -194,6 +198,13 @@ public class ValidateManager {
                                                    int value) {
         addValidateItem(editText,
                 ValidateItem.createValueItem(ValidateType.MIN_VALUE, validateMessage, value));
+        return this;
+    }
+
+    public ValidateManager addValidateUniqueItem(EditText editText, String validateMessage,
+                                                 String[] array) {
+        addValidateItem(editText,
+                ValidateItem.createUniqueItem(ValidateType.UNIQUE, validateMessage, Arrays.asList(array)));
         return this;
     }
 
@@ -439,6 +450,114 @@ public class ValidateManager {
             return true;
         }
 
+    }
+
+    public static boolean validate(Object target) {
+        ValidateManager manager = new ValidateManager();
+        try {
+            Class<?> clazz = target.getClass();
+            Field[] fields = clazz.getDeclaredFields();
+            for (Field field : fields) {
+                field.setAccessible(true);
+                Object o = field.get(target);
+                if (o instanceof EditText) {
+                    EditText editText = (EditText) o;
+                    Annotation[] annotations = field.getDeclaredAnnotations();
+                    for (Annotation annotation : annotations) {
+                        if (annotation instanceof Email) {
+                            Email email = (Email) annotation;
+                            String message = email.message();
+                            manager.addValidateEmailItem(editText, message);
+                        } else if (annotation instanceof EqualsValue) {
+                            EqualsValue equals = (EqualsValue) annotation;
+                            String message = equals.message();
+                            String text = equals.value();
+                            manager.addValidateEqualsItem(editText, message, text);
+                        } else if (annotation instanceof EqualsString) {
+                            EqualsString equals = (EqualsString) annotation;
+                            String message = equals.message();
+                            String stringName = equals.string();
+                            Field stringField = clazz.getDeclaredField(stringName);
+                            stringField.setAccessible(true);
+                            String stringValue = (String) stringField.get(target);
+                            manager.addValidateEqualsItem(editText, message, stringValue);
+                        } else if (annotation instanceof EqualsEditText) {
+                            EqualsEditText equals = (EqualsEditText) annotation;
+                            String message = equals.message();
+                            String edittextName = equals.editext();
+                            Field edittextField = clazz.getDeclaredField(edittextName);
+                            edittextField.setAccessible(true);
+                            EditText editext = (EditText) edittextField.get(target);
+                            manager.addValidateEqualsItem(editText, message, editext);
+                        } else if (annotation instanceof Length) {
+                            Length length = (Length) annotation;
+                            String message = length.message();
+                            int maxLength = length.maxLength();
+                            int minLength = length.minLength();
+                            manager.addValidateMinLengthItem(editText, message, minLength);
+                            manager.addValidateMaxLengthItem(editText, message, maxLength);
+                        } else if (annotation instanceof Phone) {
+                            Phone phone = (Phone) annotation;
+                            String message = phone.message();
+                            manager.addValidatePhoneItem(editText, message);
+                        } else if (annotation instanceof Regex) {
+                            Regex regex = (Regex) annotation;
+                            String message = regex.message();
+                            String value = regex.regex();
+                            manager.addValidateRegexItem(editText, value, message);
+                        } else if (annotation instanceof Required) {
+                            Required required = (Required) annotation;
+                            String message = required.message();
+                            manager.addValidateRequiredItem(editText, message);
+                        } else if (annotation instanceof Unique) {
+                            Unique unique = (Unique) annotation;
+                            String message = unique.message();
+                            String arrayName = unique.array();
+                            Field arrayField = clazz.getDeclaredField(arrayName);
+                            arrayField.setAccessible(true);
+                            Type type = arrayField.getType();
+                            if (type == List.class) {
+                                List<String> list = (List<String>) arrayField.get(target);
+                                manager.addValidateUniqueItem(editText, message, list);
+                            } else if (type == String[].class) {
+                                String[] array = (String[]) arrayField.get(target);
+                                manager.addValidateUniqueItem(editText, message, array);
+                            }
+                        } else if (annotation instanceof Value) {
+                            Value value = (Value) annotation;
+                            String message = value.message();
+                            int minValue = value.minValue();
+                            int maxValue = value.maxValue();
+                            manager.addValidateMinValueItem(editText, message, minValue);
+                            manager.addValidateMaxValueItem(editText, message, maxValue);
+                        } else if (annotation instanceof MaxLength) {
+                            MaxLength length = (MaxLength) annotation;
+                            String message = length.message();
+                            int maxLength = length.maxLength();
+                            manager.addValidateMaxLengthItem(editText, message, maxLength);
+                        } else if (annotation instanceof MinLength) {
+                            MinLength length = (MinLength) annotation;
+                            String message = length.message();
+                            int minLength = length.minLength();
+                            manager.addValidateMaxLengthItem(editText, message, minLength);
+                        } else if (annotation instanceof MaxValue) {
+                            MaxValue value = (MaxValue) annotation;
+                            String message = value.message();
+                            int maxValue = value.maxValue();
+                            manager.addValidateMaxValueItem(editText, message, maxValue);
+                        } else if (annotation instanceof MinValue) {
+                            MinValue value = (MinValue) annotation;
+                            String message = value.message();
+                            int minValue = value.minValue();
+                            manager.addValidateMinValueItem(editText, message, minValue);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return manager.validate();
     }
 
     public boolean validate(EditText editText) {

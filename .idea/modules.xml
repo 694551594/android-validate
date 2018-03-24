@@ -2,9 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/android-validate.iml" filepath="$PROJECT_DIR$/android-validate.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/android-validate.iml" filepath="$PROJECT_DIR$/.idea/android-validate.iml" />
+      <module fileurl="file://F:\work\workspace\workspace_android\android-validate\android-validate.iml" filepath="F:\work\workspace\workspace_android\android-validate\android-validate.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://F:\work\workspace\workspace_android\android-validate\app\app.iml" filepath="F:\work\workspace\workspace_android\android-validate\app\app.iml" />
       <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
+      <module fileurl="file://F:\work\workspace\workspace_android\android-validate\library\library.iml" filepath="F:\work\workspace\workspace_android\android-validate\library\library.iml" />
     </modules>
   </component>
 </project>
